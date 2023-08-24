@@ -35,6 +35,8 @@ spdx = "0.10"
 
 anyhow = "1.0"
 
+whoami = "0.1.0"
+
 [workspace]
 members = [".", "nsc-helper"]
 default-members = [".", "nsc-helper"]

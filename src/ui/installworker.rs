@@ -9,6 +9,7 @@ use std::path::Path;
 use std::process::Stdio;
 use std::fs;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+use whoami;
 
 #[tracker::track]
 #[derive(Debug)]
@@ -345,6 +346,7 @@ async fn installsys(
     _sender: ComponentSender<InstallAsyncHandler>,
 ) -> Result<bool> {
     let systemconfig = config.systemconfig.unwrap_or_default();
+    let username = whoami::username();
     let flakeargs = if let Some(flake) = config.flake {
         if let Some(flakearg) = config.flakearg {
             Some(format!("{}#{}", flake, flakearg))
@@ -356,7 +358,7 @@ async fn installsys(
     };
     let mut p = pkg;
     let f = fs::read_to_string(&systemconfig)?;
-    if let Ok(s) = nix_editor::read::getwithvalue(&f, "environment.systemPackages") {
+    if let Ok(s) = nix_editor::read::getwithvalue(&f, &format!("users.users.{}.packages", username)) {
         if !s.contains(&"pkgs".to_string()) {
             p = format!("pkgs.{}", p);
         }
@@ -366,7 +368,7 @@ async fn installsys(
 
     let out = match action {
         PkgAction::Install => {
-            match nix_editor::write::addtoarr(&f, "environment.systemPackages", vec![p]) {
+            match nix_editor::write::addtoarr(&f, &format!("users.users.{}.packages", username), vec![p]) {
                 Ok(x) => x,
                 Err(_) => {
                     return Err(anyhow!("Failed to write configuration.nix"));
@@ -374,7 +376,7 @@ async fn installsys(
             }
         }
         PkgAction::Remove => {
-            match nix_editor::write::rmarr(&f, "environment.systemPackages", vec![p]) {
+            match nix_editor::write::removefromarr(&f, &format!("users.users.{}.packages", username), vec![p]) {
                 Ok(x) => x,
                 Err(_) => {
                     return Err(anyhow!("Failed to write configuration.nix"));
