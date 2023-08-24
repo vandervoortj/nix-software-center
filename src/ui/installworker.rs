@@ -376,7 +376,7 @@ async fn installsys(
             }
         }
         PkgAction::Remove => {
-            match nix_editor::write::removefromarr(&f, &format!("users.users.{}.packages", username), vec![p]) {
+            match nix_editor::write::rmarr(&f, &format!("users.users.{}.packages", username), vec![p]) {
                 Ok(x) => x,
                 Err(_) => {
                     return Err(anyhow!("Failed to write configuration.nix"));
