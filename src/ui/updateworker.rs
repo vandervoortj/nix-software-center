@@ -4,6 +4,7 @@ use nix_data::config::configfile::NixDataConfig;
 use relm4::*;
 use std::{fs, path::Path, process::Stdio};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+use whoami;
 
 use crate::ui::{rebuild::RebuildMsg, window::REBUILD_BROKER};
 
@@ -314,8 +315,9 @@ async fn runcmd(
         NscCmd::All => match syspkgs {
             SystemPkgs::Legacy => {
                 if let Some(rmpkgs) = rmpkgs {
+                    let username = whoami::username();
                     let newconfig =
-                        match nix_editor::write::rmarr(&f, "environment.systemPackages", rmpkgs) {
+                        match nix_editor::write::rmarr(&f, &format!("users.users.\"{}\".packages", username), rmpkgs) {
                             Ok(x) => x,
                             Err(_) => {
                                 return Err(anyhow!("Failed to write configuration.nix"));
@@ -358,8 +360,9 @@ async fn runcmd(
             }
             SystemPkgs::Flake => {
                 if let Some(rmpkgs) = rmpkgs {
+                    let username = whoami::username();
                     let newconfig =
-                        match nix_editor::write::rmarr(&f, "environment.systemPackages", rmpkgs) {
+                        match nix_editor::write::rmarr(&f, &format!("users.users.\"{}\".packages", username), rmpkgs) {
                             Ok(x) => x,
                             Err(_) => {
                                 return Err(anyhow!("Failed to write configuration.nix"));

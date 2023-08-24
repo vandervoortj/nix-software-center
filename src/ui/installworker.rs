@@ -358,7 +358,7 @@ async fn installsys(
     };
     let mut p = pkg;
     let f = fs::read_to_string(&systemconfig)?;
-    if let Ok(s) = nix_editor::read::getwithvalue(&f, &format!("users.users.{}.packages", username)) {
+    if let Ok(s) = nix_editor::read::getwithvalue(&f, &format!("users.users.\"{}\".packages", username)) {
         if !s.contains(&"pkgs".to_string()) {
             p = format!("pkgs.{}", p);
         }
@@ -368,7 +368,7 @@ async fn installsys(
 
     let out = match action {
         PkgAction::Install => {
-            match nix_editor::write::addtoarr(&f, &format!("users.users.{}.packages", username), vec![p]) {
+            match nix_editor::write::addtoarr(&f, &format!("users.users.\"{}\".packages", username), vec![p]) {
                 Ok(x) => x,
                 Err(_) => {
                     return Err(anyhow!("Failed to write configuration.nix"));
@@ -376,7 +376,7 @@ async fn installsys(
             }
         }
         PkgAction::Remove => {
-            match nix_editor::write::rmarr(&f, &format!("users.users.{}.packages", username), vec![p]) {
+            match nix_editor::write::rmarr(&f, &format!("users.users.\"{}\".packages", username), vec![p]) {
                 Ok(x) => x,
                 Err(_) => {
                     return Err(anyhow!("Failed to write configuration.nix"));
